@@ -1,6 +1,7 @@
 from api_conect import get_owned_games, get_steamid64_from_vanity
-from igbd import get_igdb_access_token, buscar_igdb
+from igbd import get_igdb_access_token, get_game_details
 from game_sorter import sort_games_by_playtime
+from recommender import generate_recommendations
 import time
 
 API_KEY = '4015C2DD9E04E39D3DA0CC9DAD264D4E'
@@ -54,8 +55,26 @@ if top_juegos:
 else:
     print("No hay juegos con horas jugadas.")
 
-print("\nPuntajes de IGDB para el top 10:")
+print("\nPuntajes y detalles de IGDB para el top 10:")
+print("\nDetalles de IGDB para el top 10:")
+game_details = []
 for juego in top_juegos:
-    score = buscar_igdb(juego['name'],IGDB_CLIENT_ID, access_token)
-    print(f"{juego['name']}: {score if score is not None else 'No disponible'} (Puntaje IGDB)")
-    time.sleep(1)
+    details = get_game_details(juego['name'], IGDB_CLIENT_ID, access_token)
+    if details:
+        game_details.append(details)
+        genres_str = ', '.join(details['genres']) if details['genres'] else 'No disponible'
+        keywords_str = ', '.join(details['keywords'][:5]) if details['keywords'] else 'No disponible'
+        print(f"{juego['name']}: {details['rating'] if details.get('rating') else juego.get('review_score', 'No disponible')}% (Puntaje {'IGDB' if details.get('rating') else 'Steam'}), Géneros: {genres_str}, Keywords: {keywords_str}")
+    else:
+        print(f"{juego['name']}: {juego.get('review_score', 'No disponible')}% (Puntaje Steam), Géneros: No disponible, Keywords: No disponible")
+    time.sleep(2)
+
+# Generar recomendaciones
+
+recommendations = generate_recommendations(top_juegos, game_details)
+print("\nJuegos recomendados para ti:")
+if recommendations:
+    for i, rec in enumerate(recommendations, 1):
+        print(f"{i}. {rec['name']} - {rec['rating'] if rec.get('rating') else 'No disponible'}")
+else:
+    print("No se pudieron generar recomendaciones.")
