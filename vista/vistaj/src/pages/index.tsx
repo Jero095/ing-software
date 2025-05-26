@@ -80,7 +80,7 @@ export default function IndexPage() {
             label="Username or SteamID64"
             labelPlacement="outside"
             name="username"
-            placeholder="e.g., elbrayan1212 or 76561197960265728"
+            placeholder="e.g.  7xxxxxxxxxxx65728"
             onChange={(e) => setUsername(e.target.value)}
             isInvalid={!!errors.username}
             errorMessage={errors.username}
