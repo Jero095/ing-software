@@ -7,7 +7,7 @@ from recommender import generate_recommendations
 import time
 
 app = Flask(__name__)
-CORS(app)  # Permitir solicitudes desde el frontend (localhost:5173)
+CORS(app, resources={r"/recommend": {"origins": "http://localhost:5173"}})
 
 # Configuración
 API_KEY = '4015C2DD9E04E39D3DA0CC9DAD264D4E'
