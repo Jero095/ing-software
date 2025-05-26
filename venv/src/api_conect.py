@@ -59,3 +59,34 @@ def get_owned_games(api_key, steam_id):
     except Exception as e:
         print(f"Excepción al obtener juegos: {e}")
         return []
+    
+def get_steam_review_score(appid):
+    """
+    Obtiene el porcentaje de reseñas positivas para un juego desde la API de Steam.
+    
+    Args:
+        appid (int): ID del juego en Steam.
+        
+    Returns:
+        int or None: Porcentaje de reseñas positivas (0-100), o None si no hay datos.
+    """
+    url = f"https://store.steampowered.com/appreviews/{appid}?json=1&language=all"
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"No se pudo obtener reseñas para appid {appid}: Código {response.status_code}")
+            return None
+        
+        data = response.json()
+        if data.get('success') == 1 and 'query_summary' in data:
+            review_score = data['query_summary'].get('review_score', 0)
+            total_positive = data['query_summary'].get('total_positive', 0)
+            total_reviews = data['query_summary'].get('total_reviews', 0)
+            if total_reviews > 0:
+                percentage = round((total_positive / total_reviews) * 100)
+                print(f"Puntaje de reseñas para appid {appid}: {percentage}% ({total_reviews} reseñas)")
+                return percentage
+        return None
+    except Exception as e:
+        print(f"Error al obtener reseñas para appid {appid}: {e}")
+        return None

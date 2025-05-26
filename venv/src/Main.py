@@ -1,12 +1,19 @@
 from api_conect import get_owned_games, get_steamid64_from_vanity
-from Metacritic import buscar_metacritic
+from igbd import get_igdb_access_token, buscar_igdb
 from game_sorter import sort_games_by_playtime
 import time
 
 API_KEY = '4015C2DD9E04E39D3DA0CC9DAD264D4E'
 #STEAM_ID = '76561198815929818'
+IGDB_CLIENT_ID = 'wknux0efm22z5j9pgp19bc88mfxlxt'
+IGDB_CLIENT_SECRET = '5wa4qj0u9bm4rf4gm9qp55avw7qls5'
 
 # Solicitar nombre de usuario
+
+access_token = get_igdb_access_token(IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)
+if not access_token:
+    print("No se pudo obtener el access_token de IGDB. Finalizando.")
+    exit()
 VANITY_URL = input("Ingresa tu nombre de usuario de Steam (o presiona Enter para ingresar SteamID64 directamente): ").strip()
 
 # Obtener SteamID64
@@ -47,9 +54,8 @@ if top_juegos:
 else:
     print("No hay juegos con horas jugadas.")
 
-# Obtener puntajes de Metacritic
-print("\nPuntajes de Metacritic:")
+print("\nPuntajes de IGDB para el top 10:")
 for juego in top_juegos:
-    score = buscar_metacritic(juego['name'])
-    print(f"{juego['name']}: {score if score is not None else 'No disponible'} (Metascore)")
-    time.sleep(3)
+    score = buscar_igdb(juego['name'],IGDB_CLIENT_ID, access_token)
+    print(f"{juego['name']}: {score if score is not None else 'No disponible'} (Puntaje IGDB)")
+    time.sleep(1)
