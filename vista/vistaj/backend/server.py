@@ -11,8 +11,8 @@ CORS(app)  # Permitir solicitudes desde el frontend (localhost:5173)
 
 # Configuración
 API_KEY = '4015C2DD9E04E39D3DA0CC9DAD264D4E'
-IGDB_CLIENT_ID = 'tu_client_id'  # Reemplaza con tu Client ID de IGDB
-IGDB_CLIENT_SECRET = 'tu_client_secret'  # Reemplaza con tu Client Secret de IGDB
+IGDB_CLIENT_ID = 'wknux0efm22z5j9pgp19bc88mfxlxt'  # Reemplaza con tu Client ID de IGDB
+IGDB_CLIENT_SECRET = '35umbc7k6bcxihq6sttrfttrvfily8'  # Reemplaza con tu Client Secret de IGDB
 
 # Obtener access_token para IGDB
 access_token = get_igdb_access_token(IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)
