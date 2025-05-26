@@ -1,101 +1,77 @@
-def generate_recommendations(top_games, game_details):
+from collections import Counter
+import random
+
+def generate_recommendations(top_games, game_details, max_recommendations=5):
     """
-    Genera recomendaciones de juegos basadas en los juegos más jugados y sus detalles.
+    Genera recomendaciones basadas en los juegos más jugados y sus detalles.
     
     Args:
-        top_games (list): Lista de diccionarios con 'name', 'playtime_hours', 'review_score'.
-        game_details (list): Lista de diccionarios con detalles de IGDB (genres, keywords, similar_games).
+        top_games (list): Lista de juegos más jugados (con 'name', 'playtime_hours', 'appid').
+        game_details (list): Lista de detalles de IGDB (con 'name', 'genres', 'keywords', 'similar_games').
+        max_recommendations (int): Número máximo de recomendaciones.
         
     Returns:
-        list: Lista de hasta 5 juegos recomendados (nombre y puntaje).
+        list: Lista de juegos recomendados con 'name', 'rating', 'description'.
     """
     if not top_games or not game_details:
-        print("No hay juegos o detalles para generar recomendaciones.")
         return []
 
-    # Calcular el peso de cada juego según las horas jugadas
-    total_hours = sum(game.get('playtime_hours', 0) for game in top_games)
-    game_weights = {
-        game['name']: game.get('playtime_hours', 0) / total_hours if total_hours > 0 else 1/len(top_games)
-        for game in top_games
-    }
+    # Extraer géneros y keywords de los juegos del usuario para el algoritmo
+    all_genres = []
+    all_keywords = []
+    for details in game_details:
+        if details:
+            all_genres.extend(details.get('genres', []))
+            all_keywords.extend(details.get('keywords', []))
 
-    # Recolectar géneros y keywords preferidos
-    preferred_genres = {}
-    preferred_keywords = {}
-    similar_games_pool = []
-    
-    for details, top_game in zip(game_details, top_games):
-        if not details:
-            continue
-        game_name = details['name']
-        weight = game_weights.get(game_name, 0)
-        
-        # Contar géneros
-        for genre in details.get('genres', []):
-            preferred_genres[genre] = preferred_genres.get(genre, 0) + weight
-        
-        # Contar keywords
-        for keyword in details.get('keywords', []):
-            preferred_keywords[keyword] = preferred_keywords.get(keyword, 0) + weight
-        
-        # Añadir juegos similares al pool
-        for similar_game in details.get('similar_games', []):
-            rating = similar_game.get('rating', top_game.get('review_score', 0))
-            similar_games_pool.append({
-                'name': similar_game['name'],
-                'rating': rating,
-                'genres': details.get('genres', []),
-                'keywords': details.get('keywords', [])
-            })
+    # Contar frecuencias
+    genre_counts = Counter(all_genres)
+    keyword_counts = Counter(all_keywords)
 
-    if not similar_games_pool:
-        print("No se encontraron juegos similares para generar recomendaciones.")
-        return []
+    # Obtener géneros y keywords más comunes
+    top_genres = [genre for genre, _ in genre_counts.most_common(3)]
+    top_keywords = [keyword for keyword, _ in keyword_counts.most_common(5)]
 
-    # Eliminar juegos que ya están en la biblioteca del usuario
-    owned_games = set(game['name'] for game in top_games)
-    similar_games_pool = [game for game in similar_games_pool if game['name'] not in owned_games]
+    # Recolectar juegos similares
+    similar_games = []
+    for details in game_details:
+        if details and 'similar_games' in details:
+            for sim_game in details['similar_games']:
+                # Usar géneros y keywords del juego principal para el puntaje
+                score = (len(set(details.get('genres', [])) & set(top_genres)) * 2 +
+                         len(set(details.get('keywords', [])) & set(top_keywords)))
+                similar_games.append({
+                    'name': sim_game['name'],
+                    'rating': sim_game['rating'],
+                    'description': sim_game['description'],
+                    'score': score
+                })
 
-    # Calcular puntaje para cada juego candidato
+    # Ordenar por puntaje y evitar duplicados
+    seen = set()
     recommendations = []
-    for candidate in similar_games_pool:
-        score = 0
-        # Puntuación por géneros compartidos
-        for genre in candidate.get('genres', []):
-            score += preferred_genres.get(genre, 0)
-        # Puntuación por keywords compartidos
-        for keyword in candidate.get('keywords', []):
-            score += preferred_keywords.get(keyword, 0) * 0.5  # Keywords tienen menos peso
-        # Ajustar por rating
-        if candidate['rating']:
-            score *= (candidate['rating'] / 100)
-        else:
-            score *= 0.5  # Penalizar juegos sin rating
-        
-        recommendations.append({
-            'name': candidate['name'],
-            'rating': candidate['rating'],
-            'score': score
-        })
+    for game in sorted(similar_games, key=lambda x: x['score'], reverse=True):
+        if game['name'] not in seen and game['name'] not in [g['name'] for g in top_games]:
+            recommendations.append({
+                'name': game['name'],
+                'rating': game['rating'],
+                'description': game['description']
+            })
+            seen.add(game['name'])
+        if len(recommendations) >= max_recommendations:
+            break
 
-    # Ordenar por puntaje
-    recommendations = sorted(recommendations, key=lambda x: x['score'], reverse=True)
+    # Si no hay suficientes recomendaciones, añadir algunas aleatorias
+    while len(recommendations) < max_recommendations and similar_games:
+        game = random.choice(similar_games)
+        if game['name'] not in seen and game['name'] not in [g['name'] for g in top_games]:
+            recommendations.append({
+                'name': game['name'],
+                'rating': game['rating'],
+                'description': game['description']
+            })
+            seen.add(game['name'])
+        if len(recommendations) >= max_recommendations:
+            break
 
-    # Relajar filtro si no hay recomendaciones
-    if not recommendations:
-        print("No se encontraron recomendaciones. Mostrando sin filtro.")
-        recommendations = [
-            {'name': rec['name'], 'rating': rec['rating']}
-            for rec in recommendations[:5]
-        ]
-    else:
-        recommendations = [
-            {'name': rec['name'], 'rating': rec['rating']}
-            for rec in recommendations[:5] if rec['score'] > 0
-        ]
-
-    if not recommendations:
-        print("No se generaron recomendaciones debido a datos insuficientes.")
-    
     return recommendations

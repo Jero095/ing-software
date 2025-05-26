@@ -56,7 +56,7 @@ def recommend():
             details = get_game_details(juego['name'], IGDB_CLIENT_ID, access_token)
             if details:
                 game_details.append(details)
-            time.sleep(2)  # Respetar límites de IGDB
+            time.sleep(1)  # Respetar límites de IGDB
 
         # Generar recomendaciones
         recommendations = generate_recommendations(top_juegos, game_details)
@@ -66,8 +66,8 @@ def recommend():
             'top_games': [
                 {
                     'name': juego['name'],
-                    'playtime_hours': juego['playtime_hours'],
-                    'rating': details.get('rating') if details else juego.get('review_score', None),
+                    'playtime_hours': round(juego['playtime_hours'], 1),
+                    'rating': details.get('rating') if details else None,
                     'genres': details.get('genres', []) if details else [],
                     'keywords': details.get('keywords', [])[:5] if details else []
                 }
@@ -76,7 +76,8 @@ def recommend():
             'recommendations': [
                 {
                     'name': rec['name'],
-                    'rating': rec['rating']
+                    'rating': rec['rating'],
+                    'description': rec['description']
                 }
                 for rec in recommendations
             ]

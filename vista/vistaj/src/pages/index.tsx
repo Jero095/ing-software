@@ -121,7 +121,8 @@ export default function IndexPage() {
               <Card key={index} className="w-full">
                 <CardHeader className="font-bold">{rec.name}</CardHeader>
                 <CardBody>
-                  <p>Rating: {rec.rating || "N/A"}%</p>
+                  <p>Rating: {rec.rating || 'N/A'}%</p>
+                  <p className="text-sm text-gray-600 mt-2">{rec.description || 'No description available'}</p>
                 </CardBody>
               </Card>
             ))}

@@ -171,19 +171,23 @@ def get_game_details(game_name, client_id, access_token):
         # Obtener nombres de géneros y keywords
         genres = get_genre_names(genre_ids, client_id, access_token)
         keywords = get_keyword_names(keyword_ids, client_id, access_token)
+
+        similar_games = []
+        for sg in game.get('similar_games', []):
+            description = sg.get('summary', '')[:150] + ('...' if len(sg.get('summary', '')) > 150 else '')  # Truncar a 150 caracteres
+            similar_games.append({
+                'name': sg['name'],
+                'rating': round(sg.get('rating', 0)) if sg.get('rating') else None,
+                'description': description or 'No description available'
+            })
         
         result = {
             'name': game.get('name', game_name),
             'rating': round(game.get('rating', 0)) if game.get('rating') else None,
             'genres': genres,
             'keywords': keywords,
-            'similar_games': [
-                {
-                    'name': sg['name'],
-                    'rating': round(sg.get('rating', 0)) if sg.get('rating') else None
-                }
-                for sg in game.get('similar_games', [])
-            ]
+            'summary': game.get('summary', 'No summary available'),
+            'similar_games': similar_games
         }
         
         print(f"Detalles completos para {game_name}: {result}")
