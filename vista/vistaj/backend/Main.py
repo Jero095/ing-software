@@ -7,7 +7,7 @@ import time
 API_KEY = '4015C2DD9E04E39D3DA0CC9DAD264D4E'
 #STEAM_ID = '76561198815929818'
 IGDB_CLIENT_ID = 'wknux0efm22z5j9pgp19bc88mfxlxt'
-IGDB_CLIENT_SECRET = '35umbc7k6bcxihq6sttrfttrvfily8'
+IGDB_CLIENT_SECRET = 'ep5ygomjqb8yvlgvmppvb0pf49qj47'
 
 # Solicitar nombre de usuario
 
